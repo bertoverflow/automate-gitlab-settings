@@ -22,12 +22,31 @@ docker build --build-arg GITLAB_TOKEN=<INSERT YOUT API TOKEN HERE> -t automate-g
 docker run -it --rm automate-gitlab-settings
 ```
 
+This will configure some project-level settings for all your owned projects at gitlab.com.
+However, the used gitlab instance can be configured in app/pyton-gitlab.cfg
+
+The settings that will be applied are listed in the respective python modules:
+* app/general_settings.py
+* app/merge_request_approvals.py
+* app/protected_branches.py
+* app/push_rules.py
+
+The settings that are configured there, have to be adjusted to your needs of course.
+There is no configuration file currently, just adjust the values in the python files.
+
+Currently the script retrieves all projects, that:
+* you own
+* are not archived
+
+You can adjust this programmatically in app/main.py.
+
 ### Search filter
 
 To change the search filter (the list of projects that will be configured), you can set the environment variable `PROJECT_SEARCH_FILTER`.
 With the search parameter you can easily restrict the project-list to a specific namespace, group. For example:
 * only include a specific project: '/project-name'
 * only include a specific group: 'group-name/'
+* all projects: '' (empty string = no search filter)
 ```
 docker run -it --rm -e PROJECT_SEARCH_FILTER='/my-project' automate-gitlab-settings
 ```

@@ -22,14 +22,14 @@ if __name__ == '__main__':
   project_search_filer = os.getenv('PROJECT_SEARCH_FILTER', PROJECT_SEARCH_FILTER_DEFAULT_VALUE)
   print("Using search filter: ", project_search_filer)
 
-  gl = gitlab.Gitlab.from_config('gitlab', ['./python-gitlab.cfg'])
+  gitlap_api_client = gitlab.Gitlab.from_config('gitlab', ['./python-gitlab.cfg'])
 
   # Gitlab version
-  print("Gitlab Version: ", gl.version())
+  print("Gitlab Version: ", gitlap_api_client.version())
 
   # Current (logged-in) user
-  gl.auth()
-  print("Authenticated User: ", gl.user.name)
+  gitlap_api_client.auth()
+  print("Authenticated User: ", gitlap_api_client.user.name)
 
   # Get projects
   # https://python-gitlab.readthedocs.io/en/stable/gl_objects/projects.html
@@ -38,7 +38,7 @@ if __name__ == '__main__':
   # with the search parameter you can easily restrict the project-list to a specific namespace, group. For example:
   # - only include a specific project: search='/project-name'
   # - only include a specific group: search='group-name/'
-  projects = gl.projects.list(
+  projects = gitlap_api_client.projects.list(
       archived=False, # no archived projects
       all=True, # no pagination, retrieve all results in one go
       owned=True, # only projects we own
