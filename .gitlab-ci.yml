@@ -1,0 +1,30 @@
+image: SOME_IMAGE_WITH_DOCKER
+
+variables:
+  PROJECT_SEARCH_FILTER: 'my-group/'
+
+stages:
+  - dry_run
+  - apply_configuration
+
+.apply_configuration_template:
+  tags:
+    - docker_build
+  script:
+    - docker build --build-arg GITLAB_TOKEN=$GITLAB_CONFIGURATION_API_TOKEN -t automate-gitlab-settings .
+    - docker run --rm -e PROJECT_SEARCH_FILTER=$PROJECT_SEARCH_FILTER -e DRY_RUN=$DRY_RUN automate-gitlab-settings
+
+dry_run:
+  extends: .apply_configuration_template
+  stage:
+    dry_run
+  variables:
+    DRY_RUN: 1
+
+apply_configuration:
+  extends: .apply_configuration_template
+  stage:
+    apply_configuration
+  variables:
+    DRY_RUN: 0
+  when: manual

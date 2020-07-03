@@ -1,10 +1,62 @@
+import os
 import gitlab
+import general_settings
+import merge_request_approvals
+import protected_branches
+import push_rules
 
-gl = gitlab.Gitlab.from_config('gitlab', ['./python-gitlab.cfg'])
+if __name__ == '__main__':
 
-print(gl.version())
+  # check if we should do a dry run
+  DRY_RUN_DEFAULT_VALUE = False
+  dry_run = os.getenv("DRY_RUN")
+  if dry_run == '1':
+    dry_run = True
+  elif dry_run == '0':
+    dry_run = False
+  else:
+    dry_run = DRY_RUN_DEFAULT_VALUE
 
-# List projects, where the user is a member
-projects = gl.projects.list(membership=True)
-print(projects)
+  # check if we were given a search filter for the projects via an Environment variable
+  PROJECT_SEARCH_FILTER_DEFAULT_VALUE = '/gitlab-settings-test/'
+  project_search_filer = os.getenv('PROJECT_SEARCH_FILTER', PROJECT_SEARCH_FILTER_DEFAULT_VALUE)
+  print("Using search filter: ", project_search_filer)
 
+  gl = gitlab.Gitlab.from_config('gitlab', ['./python-gitlab.cfg'])
+
+  # Gitlab version
+  print("Gitlab Version: ", gl.version())
+
+  # Current (logged-in) user
+  gl.auth()
+  print("Authenticated User: ", gl.user.name)
+
+  # Get projects
+  # https://python-gitlab.readthedocs.io/en/stable/gl_objects/projects.html
+  # The project 'name' is the visible name of the project in gitlab
+  # The project 'path' is the internal representation (without spaces, the one that is used in the URLs etc.)
+  # with the search parameter you can easily restrict the project-list to a specific namespace, group. For example:
+  # - only include a specific project: search='/project-name'
+  # - only include a specific group: search='group-name/'
+  projects = gl.projects.list(
+      archived=False, # no archived projects
+      all=True, # no pagination, retrieve all results in one go
+      order_by='name', # order by project name
+      sort='asc',
+      search=project_search_filer, # this is searched in the name AND in the path
+      search_namespaces=True) # include the namespace in the search
+
+  total_projects = len(projects)
+  print("Total projects found: ", total_projects)
+
+  for index, project in enumerate(projects, start=1):
+    print()
+    print("------------------------------------------------------")
+    print(index, '/', total_projects, ":", project.name, "(", project.path_with_namespace, ")")
+    print("------------------------------------------------------")
+
+    if not dry_run:
+      general_settings.configure_project_general_settings(project)
+      merge_request_approvals.configure_project_merge_request_approval_settings(project)
+      protected_branches.configure_project_protected_branches(project)
+      push_rules.configure_project_push_rules(project)
