@@ -18,7 +18,7 @@ if __name__ == '__main__':
     dry_run = DRY_RUN_DEFAULT_VALUE
 
   # check if we were given a search filter for the projects via an Environment variable
-  PROJECT_SEARCH_FILTER_DEFAULT_VALUE = '/gitlab-settings-test/'
+  PROJECT_SEARCH_FILTER_DEFAULT_VALUE = ''
   project_search_filer = os.getenv('PROJECT_SEARCH_FILTER', PROJECT_SEARCH_FILTER_DEFAULT_VALUE)
   print("Using search filter: ", project_search_filer)
 
@@ -41,10 +41,13 @@ if __name__ == '__main__':
   projects = gl.projects.list(
       archived=False, # no archived projects
       all=True, # no pagination, retrieve all results in one go
+      owned=True, # only projects we own
+      # membership=True, # only projects where we are a member
       order_by='name', # order by project name
       sort='asc',
       search=project_search_filer, # this is searched in the name AND in the path
-      search_namespaces=True) # include the namespace in the search
+      search_namespaces=True # include the namespace in the search
+  )
 
   total_projects = len(projects)
   print("Total projects found: ", total_projects)
