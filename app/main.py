@@ -5,7 +5,7 @@ import merge_request_approvals
 import protected_branches
 import push_rules
 
-if __name__ == '__main__':
+def configure_projects():
 
   # check if we should do a dry run
   DRY_RUN_DEFAULT_VALUE = False
@@ -63,3 +63,7 @@ if __name__ == '__main__':
       merge_request_approvals.configure_project_merge_request_approval_settings(project)
       protected_branches.configure_project_protected_branches(project)
       push_rules.configure_project_push_rules(project)
+
+if __name__ == '__main__':
+
+  configure_projects()
